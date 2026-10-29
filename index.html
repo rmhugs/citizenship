@@ -176,6 +176,10 @@ button.tile:active,button.tile:hover{border-color:var(--accent)}
  .tile .ticon{width:46px;height:46px}.tile .ticon svg{width:40px;height:40px}
  .tile .tmeta{margin-top:5px}.tile .go{font-size:1.4em}
 }
+.hub-gear{display:flex;align-items:center;justify-content:center;margin-top:6px;color:var(--ink)}
+#hub-settings{background:var(--bg);color:var(--ink);border:2px solid var(--line);border-radius:var(--radius);padding:16px;width:min(92vw,460px);max-height:90vh;overflow:auto}
+#hub-settings::backdrop{background:rgba(0,0,0,.6)}
+#hub-settings h2{margin-top:0}
 </style>
 </head>
 <body>
@@ -187,21 +191,28 @@ button.tile:active,button.tile:hover{border-color:var(--accent)}
   <div class="hubtop">
    <h1 id="hub-title" tabindex="-1"><span id="hub-name"></span><small id="hub-sub"></small></h1>
    <svg class="bomb pulse" viewBox="0 0 100 100" aria-hidden="true" style="width:64px;height:64px;flex:none;margin-top:6px"><use href="#bombSym"/></svg>
+   <button type="button" class="iconbtn hub-gear" id="hub-settings-btn" aria-label="Settings" aria-haspopup="dialog" title="Settings"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
   <p class="muted" id="hub-intro">Quick Citizenship games for a group. Pick one to play.</p>
   <h2 style="margin-top:.8em">Games</h2>
   <div class="tiles" id="hub-tiles"></div>
-  <h2>Settings for all games</h2>
-  <div class="card" aria-label="Settings for all games">
-   <label class="toggle"><span>Sound<small>Game sounds (no sound files)</small></span><input type="checkbox" id="hub-sound"></label>
-   <label class="toggle"><span>Calm mode<small>No ticking, no vibration, no shaking</small></span><input type="checkbox" id="hub-calm"></label>
-   <label class="toggle"><span>Large text</span><input type="checkbox" id="hub-big"></label>
-   <label class="toggle"><span>Extra contrast</span><input type="checkbox" id="hub-hc"></label>
-   <label class="toggle"><span>Reduce motion<small>On automatically if your phone asks for it</small></span><input type="checkbox" id="hub-reduce"></label>
-  </div>
-  <p class="hint">Works offline. Settings are saved on this phone. Player names are never saved.</p>
  </div>
 </section>
+
+<!-- ===== HUB SETTINGS MENU ===== -->
+<dialog id="hub-settings" aria-labelledby="hub-settings-title">
+ <h2 id="hub-settings-title">Settings</h2>
+ <p class="muted" style="margin:0">These apply to all games.</p>
+ <div class="card">
+  <label class="toggle"><span>Sound<small>Game sounds (no sound files)</small></span><input type="checkbox" id="hub-sound"></label>
+  <label class="toggle"><span>Calm mode<small>No ticking, no vibration, no shaking</small></span><input type="checkbox" id="hub-calm"></label>
+  <label class="toggle"><span>Large text</span><input type="checkbox" id="hub-big"></label>
+  <label class="toggle"><span>Extra contrast</span><input type="checkbox" id="hub-hc"></label>
+  <label class="toggle"><span>Reduce motion<small>On automatically if your phone asks for it</small></span><input type="checkbox" id="hub-reduce"></label>
+ </div>
+ <p class="hint">Works offline. Settings are saved on this phone. Player names are never saved.</p>
+ <button type="button" class="btn primary" id="hub-settings-done">Done</button>
+</dialog>
 
 <!-- ===== GAME: Pass the Bomb (all ids prefixed ptb-) ===== -->
 <div class="game" id="game-pass-the-bomb" hidden>
@@ -427,6 +438,9 @@ function goHome(){
 }
 function boot(){
   ["sound","calm","big","hc","reduce"].forEach(function(k){$("hub-"+k).addEventListener("change",function(){settings[k]=this.checked;saveSettings();applyBody();});});
+  var dlg=$("hub-settings");
+  $("hub-settings-btn").addEventListener("click",function(){if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");});
+  $("hub-settings-done").addEventListener("click",function(){if(dlg.close)dlg.close();else dlg.removeAttribute("open");$("hub-settings-btn").focus();});
   document.addEventListener("dblclick",function(e){e.preventDefault();},{passive:false});
   window.addEventListener("hashchange",route);
   route();
