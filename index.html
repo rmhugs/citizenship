@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14141f">
+<meta name="description" content="Citizenship Games: quick one-phone quiz games for UK Citizenship.">
+<title>Citizenship Games</title>
+<style>
+
+:root{
+  --bg:#14141f; --panel:#22223a; --panel2:#2d2d4a; --ink:#ffffff; --muted:#c9c9e0;
+  --accent:#ffb627; --accent-ink:#1a1200; --good:#2ecc71; --good-ink:#04210f;
+  --bad:#ff5a5f; --bad-ink:#2a0405; --line:#4a4a70; --focus:#7fd1ff;
+  --fs:1rem; --qfs:clamp(1.25rem,5.6vw,1.6rem); --afs:clamp(1.05rem,4.6vw,1.25rem);
+  --radius:16px;
+}
+body.big{ --fs:1.2rem; --qfs:clamp(1.5rem,7vw,1.95rem); --afs:clamp(1.25rem,5.6vw,1.5rem); }
+body.hc{ --bg:#000; --panel:#000; --panel2:#111; --ink:#fff; --muted:#fff; --accent:#ffe600; --accent-ink:#000;
+  --good:#00ff6a; --good-ink:#000; --bad:#ff3b3b; --bad-ink:#000; --line:#fff; }
+*{box-sizing:border-box}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink)}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:var(--fs);line-height:1.4;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.screen{display:none;min-height:100vh;min-height:100dvh;padding:max(14px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
+.screen.on{display:flex;flex-direction:column}
+/* Play screens never scroll */
+.fixed{height:100vh;height:100dvh;overflow:hidden;user-select:none;-webkit-user-select:none}
+.scroll{max-width:560px;margin:0 auto;width:100%}
+h1{font-size:clamp(1.9rem,9vw,2.5rem);line-height:1.05;margin:.2em 0 .1em;letter-spacing:-.5px}
+h1 small{display:block;font-size:.45em;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-top:.35em}
+h2{font-size:1.25em;margin:1.1em 0 .5em}
+p{margin:.4em 0}
+.muted{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:10px 0}
+.row{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.btn{display:block;width:100%;border:0;border-radius:var(--radius);padding:14px 16px;min-height:56px;font-weight:700;font-size:1.05em;background:var(--panel2);border:2px solid var(--line)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:1.35em;min-height:68px}
+.btn.small{min-height:48px;padding:10px 14px;font-size:1em;width:auto;display:inline-block}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.45}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:52px;height:52px;border-radius:14px;border:2px solid var(--line);background:var(--panel2);font-size:1.6em;font-weight:700;line-height:1}
+.stepper output{min-width:2.2em;text-align:center;font-size:1.6em;font-weight:800}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:64px;min-height:50px;border-radius:12px;border:2px solid var(--line);background:var(--panel2);font-weight:700;padding:6px 8px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.names input{width:100%;min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--bg);padding:8px 10px}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:6px 0;border-bottom:1px solid var(--line)}
+.toggle:last-child{border-bottom:0}
+.toggle span small{display:block;color:var(--muted);font-size:.85em}
+.toggle input{appearance:none;-webkit-appearance:none;width:58px;height:34px;border-radius:20px;background:var(--line);position:relative;flex:none;border:2px solid var(--line)}
+.toggle input::after{content:"";position:absolute;top:2px;left:2px;width:26px;height:26px;border-radius:50%;background:#fff;transition:left .15s}
+.toggle input:checked{background:var(--good);border-color:var(--good)}
+.toggle input:checked::after{left:26px}
+label.lbl{font-weight:700;display:block;margin-bottom:6px}
+.hint{font-size:.88em;color:var(--muted)}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.links .btn{flex:1}
+
+/* Bomb */
+.bombwrap{display:flex;justify-content:center;align-items:center}
+.bomb{width:96px;height:96px}
+.bomb .spark{transform-origin:78px 14px;animation:spark .35s infinite alternate}
+.pulse{animation:pulse 1s infinite ease-in-out}
+@keyframes pulse{50%{transform:scale(1.06)}}
+@keyframes spark{to{transform:scale(1.35) rotate(25deg);opacity:.75}}
+
+/* Question screen */
+#ptb-scrQ{gap:10px}
+.topbar{display:flex;align-items:center;gap:10px}
+.topbar .who{flex:1;min-width:0}
+.who .nm{font-weight:800;font-size:1.2em;line-height:1.15;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.who .lv{font-size:.95em;color:var(--muted)}
+.hearts{color:var(--bad);letter-spacing:2px}
+.iconbtn{width:52px;height:52px;border-radius:14px;border:2px solid var(--line);background:var(--panel2);font-weight:800;font-size:1.05em;flex:none}
+.timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.3em;background:var(--panel2);border:2px solid var(--accent);color:var(--accent);border-radius:12px;padding:6px 10px;min-width:3.6em;text-align:center}
+.qcard{background:var(--panel);border:2px solid var(--line);border-radius:var(--radius);padding:14px 16px;display:flex;flex-direction:column;justify-content:center;flex:0 1 auto;min-height:0}
+.qtopic{font-size:.8em;text-transform:uppercase;letter-spacing:1px;color:var(--accent);font-weight:700}
+.qtext{font-size:var(--qfs);font-weight:750;line-height:1.22;margin-top:4px}
+.answers{display:flex;flex-direction:column;gap:10px;flex:1 1 auto;min-height:0;position:relative}
+.ans{flex:1 1 0;min-height:52px;max-height:110px;border-radius:var(--radius);border:3px solid var(--line);background:var(--panel2);font-size:var(--afs);font-weight:700;text-align:left;padding:8px 14px;display:flex;align-items:center;gap:12px;line-height:1.2}
+.ans .k{flex:none;width:1.9em;height:1.9em;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.85em;border:2px solid var(--line)}
+.ans.right{background:var(--good);color:var(--good-ink);border-color:var(--good)}
+.ans.wrong{background:var(--bad);color:var(--bad-ink);border-color:var(--bad)}
+.ans.right .k,.ans.wrong .k{background:rgba(255,255,255,.45);border-color:currentColor;color:inherit}
+.ans[disabled]{cursor:default}
+.lockmsg{margin-top:10px;background:var(--bad);color:var(--bad-ink);border-radius:var(--radius);padding:10px 14px;font-weight:800;text-align:center;display:none;font-size:1.1em}
+.lockmsg.on{display:block}
+.flash-good{animation:fg .45s}
+.flash-bad{animation:fb .45s}
+@keyframes fg{0%{background:var(--good)}100%{background:var(--bg)}}
+@keyframes fb{0%{background:var(--bad)}100%{background:var(--bg)}}
+.shake{animation:shake .5s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+/* Full screen tap screens */
+.tapscreen{justify-content:center;align-items:center;text-align:center;gap:14px}
+.tapscreen .big{font-size:clamp(2.2rem,12vw,3.4rem);font-weight:900;line-height:1.02;letter-spacing:-.5px}
+.tapscreen .name{font-size:clamp(2rem,11vw,3rem);font-weight:900;color:var(--accent);word-break:break-word}
+#ptb-scrPass{background:var(--accent);color:var(--accent-ink)}
+#ptb-scrPass .name{color:var(--accent-ink);text-decoration:underline;text-decoration-thickness:4px;text-underline-offset:6px}
+#ptb-scrPass .btn{background:var(--accent-ink);color:var(--accent);border-color:var(--accent-ink)}
+#ptb-scrPass .timer{border-color:var(--accent-ink);color:var(--accent-ink);background:transparent}
+.tapscreen .btn{max-width:420px}
+.boomtitle{font-size:clamp(3rem,18vw,5rem);font-weight:900;color:var(--bad);line-height:1;letter-spacing:-1px}
+#ptb-scrBoom{gap:10px;justify-content:flex-start}
+#ptb-scrBoom .learn{text-align:left;width:100%;max-width:560px}
+.learn .lq{font-weight:700}
+.learn .la{color:var(--good);font-weight:800;margin-top:6px}
+body.hc .learn .la{color:var(--good)}
+.learn .src{font-size:.85em;margin-top:6px;word-break:break-word}
+.learn .src a{color:var(--focus)}
+.standings{width:100%;max-width:560px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{background:var(--panel2);border:2px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:700;font-size:.95em}
+.chip.out{opacity:.5;text-decoration:line-through}
+.chip.hot{border-color:var(--bad)}
+.boomflash{animation:boomf .9s}
+@keyframes boomf{0%{background:#fff}15%{background:var(--bad)}100%{background:var(--bg)}}
+.spacer{flex:1}
+
+/* End */
+.winner{font-size:clamp(1.8rem,9vw,2.6rem);font-weight:900;color:var(--accent);line-height:1.1}
+ol.review{padding-left:1.3em}
+ol.review li{margin:0 0 12px}
+ol.review .ra{color:var(--good);font-weight:700}
+table.stand{width:100%;border-collapse:collapse}
+table.stand td{padding:8px 6px;border-bottom:1px solid var(--line)}
+table.stand td:last-child{text-align:right}
+
+code{background:var(--panel2);padding:2px 5px;border-radius:6px;font-size:.88em;word-break:break-word}
+
+/* Pause overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.overlay.on{display:flex}
+.overlay .card{width:100%;max-width:420px;text-align:center}
+.overlay .btn{margin-top:10px}
+
+body.calm .shake, body.calm .boomflash{animation:none}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+body.reduce *,body.reduce *::before,body.reduce *::after{animation:none!important;transition:none!important}
+@media (max-height:640px){ .bomb{width:64px;height:64px} .ans{min-height:46px} }
+
+/* ===== Hub ===== */
+.game[hidden]{display:none!important}
+.homebtn{margin:2px 0 4px;background:transparent}
+.hubtop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.tiles{display:grid;grid-template-columns:1fr;gap:12px;margin:8px 0 6px}
+@media (min-width:700px){.tiles{grid-template-columns:1fr 1fr}}
+.tile{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:var(--radius);padding:14px;min-height:104px;color:inherit;font:inherit}
+button.tile:active,button.tile:hover{border-color:var(--accent)}
+.tile .ticon{flex:none;width:60px;height:60px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--panel2)}
+.tile .ticon svg{width:52px;height:52px}
+.tile .tbody{flex:1;min-width:0}
+.tile .tname{font-weight:800;font-size:1.2em;line-height:1.15}
+.tile .tdesc{color:var(--muted);font-size:.95em;margin-top:2px}
+.tile .tmeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tile .tmeta span{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:.82em;font-weight:700}
+.tile .go{flex:none;font-size:1.8em;font-weight:800;color:var(--accent)}
+.tile.soon{border-style:dashed;opacity:.8;cursor:default}
+.tile.soon .ticon{font-size:1.8em;font-weight:800;color:var(--muted)}
+.badge{display:inline-block;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:1px 8px;font-size:.75em;font-weight:800;letter-spacing:.5px;text-transform:uppercase;vertical-align:middle}
+.tile .tname .badge{font-size:.62em;padding:1px 6px;background:transparent;color:var(--accent);border:1.5px solid var(--accent);white-space:nowrap}
+@media (max-width:380px),(max-height:700px){
+ #hub-home .hubtop svg{width:48px!important;height:48px!important}
+ #hub-intro{display:none}
+ .tile{gap:10px;padding:10px 12px;min-height:0}
+ .tile .ticon{width:46px;height:46px}.tile .ticon svg{width:40px;height:40px}
+ .tile .tmeta{margin-top:5px}.tile .go{font-size:1.4em}
+}
+</style>
+</head>
+<body>
+<noscript><p style="padding:16px">This page needs JavaScript turned on.</p></noscript>
+
+<!-- ===== HUB HOME ===== -->
+<section id="hub-home" class="screen" aria-labelledby="hub-title">
+ <div class="scroll">
+  <div class="hubtop">
+   <h1 id="hub-title" tabindex="-1"><span id="hub-name"></span><small id="hub-sub"></small></h1>
+   <svg class="bomb pulse" viewBox="0 0 100 100" aria-hidden="true" style="width:64px;height:64px;flex:none;margin-top:6px"><use href="#bombSym"/></svg>
+  </div>
+  <p class="muted" id="hub-intro">Quick Citizenship games for a group. Pick one to play.</p>
+  <h2 style="margin-top:.8em">Games</h2>
+  <div class="tiles" id="hub-tiles"></div>
+  <h2>Settings for all games</h2>
+  <div class="card" aria-label="Settings for all games">
+   <label class="toggle"><span>Sound<small>Game sounds (no sound files)</small></span><input type="checkbox" id="hub-sound"></label>
+   <label class="toggle"><span>Calm mode<small>No ticking, no vibration, no shaking</small></span><input type="checkbox" id="hub-calm"></label>
+   <label class="toggle"><span>Large text</span><input type="checkbox" id="hub-big"></label>
+   <label class="toggle"><span>Extra contrast</span><input type="checkbox" id="hub-hc"></label>
+   <label class="toggle"><span>Reduce motion<small>On automatically if your phone asks for it</small></span><input type="checkbox" id="hub-reduce"></label>
+  </div>
+  <p class="hint">Works offline. Settings are saved on this phone. Player names are never saved.</p>
+ </div>
+</section>
+
+<!-- ===== GAME: Pass the Bomb (all ids prefixed ptb-) ===== -->
+<div class="game" id="game-pass-the-bomb" hidden>
+<div id="ptb-live" class="sr" aria-live="assertive"></div>
+
+<!-- SETUP -->
+<section id="ptb-scrSetup" class="screen" aria-labelledby="ptb-t1">
+ <div class="scroll">
+  <button type="button" class="btn small homebtn" id="ptb-btnHome">‹ All games</button>
+  <div class="row" style="align-items:flex-start">
+   <h1 id="ptb-t1">Pass the Bomb<small>UK CITIZENSHIP EDITION</small></h1>
+   <svg class="bomb pulse" viewBox="0 0 100 100" aria-hidden="true" style="width:74px;height:74px;flex:none;margin-top:6px"><use href="#bombSym"/></svg>
+  </div>
+  <p class="muted">One phone, passed round the table. Answer right to pass the bomb on. Hold it when it blows and you lose a life.</p>
+
+  <div class="card">
+   <div class="row"><label class="lbl" for="ptb-nPlayers" style="margin:0">Players</label>
+    <div class="stepper"><button type="button" id="ptb-pMinus" aria-label="Fewer players">−</button><output id="ptb-nPlayers" aria-live="polite">4</output><button type="button" id="ptb-pPlus" aria-label="More players">+</button></div>
+   </div>
+   <div class="names" id="ptb-names"></div>
+   <p class="hint">Nicknames are optional and are never saved. Use first names or nicknames, not anything personal.</p>
+  </div>
+
+  <div class="card">
+   <label class="lbl">Lives each</label>
+   <div class="seg" id="ptb-segLives" data-key="lives"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div>
+   <label class="lbl" style="margin-top:14px">Game ends after</label>
+   <div class="seg" id="ptb-segCap" data-key="cap"><button type="button" data-v="5">5 bombs</button><button type="button" data-v="8">8 bombs</button><button type="button" data-v="12">12 bombs</button><button type="button" data-v="0">Last one standing</button></div>
+   <label class="lbl" style="margin-top:14px">Fuse length (random, secret)</label>
+   <div class="seg" id="ptb-segFuse" data-key="fuse"><button type="button" data-v="short">Short<br><small>15–35s</small></button><button type="button" data-v="normal">Normal<br><small>25–60s</small></button><button type="button" data-v="long">Long<br><small>40–80s</small></button></div>
+   <p class="hint" id="ptb-estimate"></p>
+  </div>
+
+  <div class="card" aria-label="Options">
+   <label class="toggle"><span>Sound<small>Ticking that speeds up, and a bang</small></span><input type="checkbox" id="ptb-optSound" checked></label>
+   <label class="toggle"><span>Calm mode<small>No ticking, no vibration, no shaking</small></span><input type="checkbox" id="ptb-optCalm"></label>
+   <label class="toggle"><span>Show the timer<small>Shows the seconds left on the fuse</small></span><input type="checkbox" id="ptb-optTimer"></label>
+   <label class="toggle"><span>Large text</span><input type="checkbox" id="ptb-optBig"></label>
+   <label class="toggle"><span>Extra contrast</span><input type="checkbox" id="ptb-optHC"></label>
+   <label class="toggle"><span>Reduce motion<small>On automatically if your phone asks for it</small></span><input type="checkbox" id="ptb-optReduce"></label>
+  </div>
+
+  <button type="button" class="btn primary" id="ptb-btnStart">Start</button>
+  <div class="links">
+   <button type="button" class="btn" id="ptb-btnHow">How to play</button>
+  </div>
+  <p class="hint" id="ptb-bankInfo" style="margin-top:12px"></p>
+  <div class="card" id="ptb-howCard" hidden>
+   <h2 style="margin-top:0">How to play</h2>
+   <ol>
+    <li>Whoever holds the phone holds the bomb. It has a secret fuse.</li>
+    <li>Answer the question. <strong>Right</strong>: pass the phone to the person named on screen. They tap to take it and get a new question.</li>
+    <li><strong>Wrong</strong>: you are locked out for 2 seconds, then you get another question. You keep the bomb.</li>
+    <li>The fuse keeps burning all the time, even while you pass the phone.</li>
+    <li>If it blows up while the phone is being passed, the person it is being passed to loses the life, so grab it fast.</li>
+    <li>Whoever is holding it when it blows loses a life. At 0 lives you are out. Last player standing wins, or the most lives when the bomb limit is reached.</li>
+   </ol>
+   <p class="hint">Facts were checked against official sources in October 2026. Facts can change, so check again before relying on them.</p>
+  </div>
+ </div>
+</section>
+
+
+<!-- READY (start of each round) -->
+<section id="ptb-scrReady" class="screen fixed tapscreen" aria-labelledby="ptb-t3">
+ <div class="muted" id="ptb-readyRound">Round 1</div>
+ <svg class="bomb pulse" viewBox="0 0 100 100" aria-hidden="true" style="width:130px;height:130px"><use href="#bombSym"/></svg>
+ <div id="ptb-t3" class="big">Bomb starts with</div>
+ <div class="name" id="ptb-readyName">Player 1</div>
+ <div class="standings" id="ptb-readyStand"></div>
+ <button type="button" class="btn primary" id="ptb-btnLight">I've got it: light the fuse</button>
+ <button type="button" class="btn small" id="ptb-btnReadyQuit">End game</button>
+</section>
+
+<!-- QUESTION -->
+<section id="ptb-scrQ" class="screen fixed" aria-labelledby="ptb-qText">
+ <div class="topbar">
+  <svg class="bomb pulse" id="ptb-qBomb" viewBox="0 0 100 100" aria-hidden="true" style="width:52px;height:52px;flex:none"><use href="#bombSym"/></svg>
+  <div class="who"><div class="nm" id="ptb-qName">Player</div><div class="lv"><span class="hearts" id="ptb-qHearts"></span></div></div>
+  <div class="timer" id="ptb-qTimer" hidden>0s</div>
+  <button type="button" class="iconbtn" id="ptb-btnPause" aria-label="Pause">II</button>
+ </div>
+ <div class="qcard"><div class="qtopic" id="ptb-qTopic"></div><div class="qtext" id="ptb-qText" aria-live="polite"></div><div class="lockmsg" id="ptb-lockMsg"></div></div>
+ <div class="answers" id="ptb-answers"></div>
+</section>
+
+<!-- PASS -->
+<section id="ptb-scrPass" class="screen fixed tapscreen" aria-labelledby="ptb-t4">
+ <div class="timer" id="ptb-pTimer" hidden>0s</div>
+ <div style="font-weight:800;font-size:1.3em">Correct!</div>
+ <div id="ptb-t4" class="big">PASS IT ON to</div>
+ <div class="name" id="ptb-passName">Player 2</div>
+ <p style="font-weight:700">It's yours now, so take it fast. The fuse is still burning!</p>
+ <button type="button" class="btn primary" id="ptb-btnTake">I'm <span id="ptb-takeName">Player 2</span>: take the bomb</button>
+</section>
+
+<!-- BOOM -->
+<section id="ptb-scrBoom" class="screen fixed tapscreen" aria-labelledby="ptb-boomT">
+ <div class="boomtitle" id="ptb-boomT">BOOM!</div>
+ <div style="font-size:1.35em;font-weight:800" id="ptb-boomWho"></div>
+ <div class="muted" id="ptb-boomLives"></div>
+ <div class="card learn" id="ptb-boomLearn"></div>
+ <div class="standings" id="ptb-boomStand"></div>
+ <div class="spacer"></div>
+ <button type="button" class="btn primary" id="ptb-btnNext" disabled>Next round</button>
+</section>
+
+<!-- END -->
+<section id="ptb-scrEnd" class="screen" aria-labelledby="ptb-t5">
+ <div class="scroll">
+  <p class="muted" style="margin-top:10px">Game over · UK CITIZENSHIP EDITION</p>
+  <div class="winner" id="ptb-t5"></div>
+  <p id="ptb-endSub" class="muted"></p>
+  <div class="card"><table class="stand" id="ptb-endTable"></table></div>
+  <button type="button" class="btn primary" id="ptb-btnAgain">Play again</button>
+  <div class="links"><button type="button" class="btn" id="ptb-btnSetup">Change players or settings</button><button type="button" class="btn" id="ptb-btnEndHome">All games</button></div>
+  <h2>Questions answered wrong</h2>
+  <div id="ptb-endReview"></div>
+  <p class="hint">Sources open only when you are online.</p>
+ </div>
+</section>
+
+<!-- PAUSE -->
+<div class="overlay" id="ptb-pause" role="dialog" aria-modal="true" aria-labelledby="ptb-pT">
+ <div class="card">
+  <h2 id="ptb-pT" style="margin-top:0">Paused</h2>
+  <p class="muted">The fuse is stopped.</p>
+  <button type="button" class="btn primary" id="ptb-btnResume">Resume</button>
+  <label class="toggle" style="margin-top:10px"><span>Sound</span><input type="checkbox" id="ptb-pSound"></label>
+  <label class="toggle"><span>Calm mode</span><input type="checkbox" id="ptb-pCalm"></label>
+  <label class="toggle"><span>Show the timer</span><input type="checkbox" id="ptb-pTimerOpt"></label>
+  <button type="button" class="btn" id="ptb-btnQuit">End game now</button>
+  <button type="button" class="btn" id="ptb-btnPauseHome">Leave to all games</button>
+ </div>
+</div>
+
+
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <radialGradient id="bg1" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#6b6b8f"/><stop offset=".55" stop-color="#2a2a3d"/><stop offset="1" stop-color="#0c0c14"/></radialGradient>
+  <symbol id="bombSym" viewBox="0 0 100 100">
+   <circle cx="44" cy="58" r="34" fill="url(#bg1)" stroke="#000" stroke-width="2"/>
+   <rect x="54" y="20" width="18" height="14" rx="3" transform="rotate(40 63 27)" fill="#555" stroke="#000" stroke-width="2"/>
+   <path d="M66 22 Q74 10 78 14" stroke="#c8a060" stroke-width="4" fill="none" stroke-linecap="round"/>
+   <g class="spark"><circle cx="78" cy="14" r="7" fill="#ffb627"/><circle cx="78" cy="14" r="3.5" fill="#fff6c0"/>
+   <path d="M78 2v6M78 20v6M66 14h6M84 14h6M70 6l4 4M86 22l-4-4M86 6l-4 4M70 22l4-4" stroke="#ffd166" stroke-width="2.2" stroke-linecap="round"/></g>
+   <ellipse cx="32" cy="44" rx="8" ry="5" fill="#fff" opacity=".25" transform="rotate(-30 32 44)"/>
+  </symbol>
+ </defs>
+</svg>
+
+
+
+<script>
+/* ===== Hub core: settings, registry, hash routing ===== */
+window.CG=(function(){
+"use strict";
+/* Change the hub name here */
+var HUB_TITLE="Citizenship Games";
+var HUB_SUBTITLE="UK CITIZENSHIP EDITION";
+var KEY="citizenshipGames.settings.v1";
+var LEAVE_MSG="Leave this game and go back to all games? The current game will end.";
+var settings={sound:true,calm:false,big:false,hc:false,reduce:false};
+try{var o=JSON.parse(localStorage.getItem(KEY)||"null");if(o)for(var k in settings)if(o.hasOwnProperty(k)&&typeof o[k]===typeof settings[k])settings[k]=o[k];}catch(e){}
+if(!settings.reduce&&window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)settings.reduce=true;
+var games=[],active=null,cameFromHome=false;
+function $(id){return document.getElementById(id);}
+function saveSettings(){try{localStorage.setItem(KEY,JSON.stringify(settings));}catch(e){}}
+function applyBody(){var b=document.body.classList;b.toggle("big",settings.big);b.toggle("hc",settings.hc);b.toggle("calm",settings.calm);b.toggle("reduce",settings.reduce);}
+function register(g){games.push(g);}
+function find(id){for(var i=0;i<games.length;i++)if(games[i].id===id)return games[i];return null;}
+function routeId(){return decodeURIComponent((location.hash||"").replace(/^#\/?/,"").split("?")[0]);}
+function renderHome(){
+  $("hub-name").textContent=HUB_TITLE;$("hub-sub").textContent=HUB_SUBTITLE;
+  var box=$("hub-tiles");box.innerHTML="";
+  games.forEach(function(g){
+    var t=document.createElement("button");t.type="button";t.className="tile";t.id="tile-"+g.id;
+    var ic=document.createElement("div");ic.className="ticon";ic.innerHTML=g.icon||"";t.appendChild(ic);
+    var bd=document.createElement("div");bd.className="tbody";
+    var n=document.createElement("div");n.className="tname";n.textContent=g.title;if(g.badge){var bg=document.createElement("span");bg.className="badge";bg.textContent=g.badge;n.appendChild(document.createTextNode(" "));n.appendChild(bg);}bd.appendChild(n);
+    var d=document.createElement("div");d.className="tdesc";d.textContent=g.description;bd.appendChild(d);
+    var m=document.createElement("div");m.className="tmeta";[g.players,g.time].forEach(function(x){if(!x)return;var s=document.createElement("span");s.textContent=x;m.appendChild(s);});bd.appendChild(m);
+    t.appendChild(bd);var go=document.createElement("span");go.className="go";go.setAttribute("aria-hidden","true");go.textContent="›";t.appendChild(go);
+    t.setAttribute("aria-label",g.title+(g.badge?" ("+g.badge+")":"")+". "+g.description+" "+[g.players,g.time].join(", "));
+    t.addEventListener("click",function(){open(g.id);});
+    box.appendChild(t);
+  });
+  var soonCoach=document.createElement("div");soonCoach.className="tile soon";soonCoach.setAttribute("aria-disabled","true");
+  soonCoach.innerHTML='<div class="ticon" aria-hidden="true">+</div><div class="tbody"><div class="tname">Citizenship Quiz Coach <span class="badge">Soon</span></div><div class="tdesc">A voice coach that quizzes you on Citizenship. Coming soon.</div></div>';
+  box.appendChild(soonCoach);
+  ["sound","calm","big","hc","reduce"].forEach(function(k){$("hub-"+k).checked=settings[k];});
+  applyBody();
+}
+function showHome(){
+  games.forEach(function(g){$("game-"+g.id).hidden=true;});
+  renderHome();$("hub-home").classList.add("on");document.title=HUB_TITLE+" · "+HUB_SUBTITLE;window.scrollTo(0,0);
+}
+function route(){
+  var g=find(routeId());
+  if(active&&active!==g){
+    if(active.isBusy&&active.isBusy()){
+      if(active.pause)active.pause();
+      if(!confirm(LEAVE_MSG)){history.pushState(null,"","#/"+active.id);return;}
+    }
+    active.leave();$("game-"+active.id).hidden=true;active=null;
+  }
+  if(g){
+    if(active!==g){active=g;$("hub-home").classList.remove("on");$("game-"+g.id).hidden=false;window.scrollTo(0,0);g.enter();}
+    document.title=g.title+" · "+HUB_TITLE;
+  }else{
+    if(location.hash&&location.hash!=="#/"&&location.hash!=="#"){history.replaceState(null,"","#/");}
+    cameFromHome=false;showHome();
+  }
+}
+function open(id){cameFromHome=true;location.hash="#/"+id;}
+/* Called by a game after it has confirmed with the player */
+function goHome(){
+  if(active){active.leave();$("game-"+active.id).hidden=true;active=null;}
+  if(cameFromHome){cameFromHome=false;history.back();}
+  else{location.replace("#/");}
+}
+function boot(){
+  ["sound","calm","big","hc","reduce"].forEach(function(k){$("hub-"+k).addEventListener("change",function(){settings[k]=this.checked;saveSettings();applyBody();});});
+  document.addEventListener("dblclick",function(e){e.preventDefault();},{passive:false});
+  window.addEventListener("hashchange",route);
+  route();
+}
+return {settings:settings,saveSettings:saveSettings,applyBody:applyBody,register:register,goHome:goHome,boot:boot,LEAVE_MSG:LEAVE_MSG,
+  get title(){return HUB_TITLE;}, get subtitle(){return HUB_SUBTITLE;}, get activeId(){return active?active.id:null;}};
+})();
+</script>
+
+<script>
+/* ===== Game module: Pass the Bomb ===== */
+
+CG.register((function(){
+"use strict";
+/* ===== Default question bank =====
+   Each fact checked against the linked official/authoritative source in October 2026 (UK; England and Wales where stated).
+   Fields: q question, a correct, w wrong answers, e explanation, u source URL, t topic. */
+var DEFAULT_QUESTIONS = [
+ // Parliament
+ {q:"How are most members of the House of Lords chosen?",a:"They are appointed",w:["Elected by the public","Elected by MPs","Chosen by lottery"],e:"Most are life peers appointed by the King on the Prime Minister's advice. None are elected by the public.",u:"https://www.parliament.uk/business/lords/whos-in-the-house-of-lords/members-and-their-roles/how-members-are-appointed/",t:"Parliament"},
+ {q:"How many MPs sit in the House of Commons?",a:"650",w:["500","600","750"],e:"The UK is divided into 650 constituencies. Each one elects one MP.",u:"https://www.parliament.uk/about/how/elections-and-voting/constituencies/",t:"Parliament"},
+ {q:"How does someone become Prime Minister?",a:"The King appoints them",w:["A national vote for PM","The House of Lords elects them","The Speaker chooses them"],e:"Voters elect MPs. The King appoints the person most able to command the confidence of the House of Commons.",u:"https://commonslibrary.parliament.uk/how-is-a-prime-minister-appointed-2/",t:"Parliament"},
+ {q:"When does Prime Minister's Questions usually happen?",a:"Wednesdays at 12pm",w:["Mondays at 9am","Fridays at 3pm","Every day at noon"],e:"The PM answers MPs' questions every sitting Wednesday from 12pm to 12.30pm.",u:"https://www.parliament.uk/about/how/business/questions/",t:"Parliament"},
+ {q:"The Speaker of the House of Commons must be…",a:"Politically impartial",w:["Leader of the biggest party","A member of the Lords","A senior judge"],e:"The Speaker chairs debates and resigns from their party when elected Speaker.",u:"https://www.parliament.uk/business/commons/the-speaker/speaker-and-the-chamber/",t:"Parliament"},
+ {q:"What is Hansard?",a:"The official record of what is said in Parliament",w:["Parliament's rule book","A list of every UK law","The Prime Minister's office"],e:"Hansard is the edited word-for-word report of debates in the Commons and the Lords.",u:"https://www.parliament.uk/site-information/glossary/hansard-official-report/",t:"Parliament"},
+ {q:"What does a party whip do in Parliament?",a:"Organises their party's members and votes",w:["Chairs debates","Writes the King's Speech","Counts votes at elections"],e:"Whips make sure their party's members vote, and vote in line with party policy.",u:"https://www.parliament.uk/site-information/glossary/whips/",t:"Parliament"},
+ {q:"What is the minimum age to stand as an MP?",a:"18",w:["16","21","25"],e:"Candidates at a UK general election must be at least 18.",u:"https://www.parliament.uk/about/mps-and-lords/members/electing-mps/candidates/",t:"Parliament"},
+ {q:"What is a backbencher?",a:"An MP who is not a minister or shadow spokesperson",w:["The most senior MP","An MP who also sits in the Lords","A Commons civil servant"],e:"Backbenchers sit behind the front benches, where ministers and shadow spokespeople sit.",u:"https://www.parliament.uk/site-information/glossary/backbenches/",t:"Parliament"},
+ // Constitution
+ {q:"How is the UK constitution best described?",a:"Uncodified: not in one single document",w:["Written in one document","Set out in EU law","Rewritten at each election"],e:"It comes from laws, court decisions and conventions. It is 'partly written and wholly uncodified'.",u:"https://www.parliament.uk/about/how/role/sovereignty/",t:"Constitution"},
+ {q:"What does 'parliamentary sovereignty' mean?",a:"Parliament can make or end any law",w:["The King makes the laws","Courts can strike down any Act","Councils can overrule Parliament"],e:"It makes Parliament the supreme legal authority in the UK.",u:"https://www.parliament.uk/about/how/role/sovereignty/",t:"Constitution"},
+ {q:"What must happen before a bill becomes an Act of Parliament?",a:"Royal Assent",w:["A referendum","Supreme Court approval","A vote by local councils"],e:"Once both Houses agree the text, the monarch formally agrees and the bill becomes law.",u:"https://www.parliament.uk/about/how/laws/passage-bill/lords/lrds-royal-assent/",t:"Constitution"},
+ {q:"If an Act breaks human rights, what can UK courts do?",a:"Make a 'declaration of incompatibility'",w:["Cancel the Act","Arrest the minister","Call a referendum"],e:"The Act stays valid. Parliament decides whether to change it.",u:"https://commonslibrary.parliament.uk/research-briefings/cbp-9958/",t:"Constitution"},
+ {q:"In which year was Magna Carta first agreed?",a:"1215",w:["1066","1689","1832"],e:"King John agreed it at Runnymede in 1215. It helped set the idea that the ruler is not above the law.",u:"https://www.parliament.uk/about/living-heritage/evolutionofparliament/originsofparliament/birthofparliament/overview/magnacarta/magnacartahow/",t:"Constitution"},
+ // Elections
+ {q:"Which voting system elects MPs at UK general elections?",a:"First past the post",w:["Single Transferable Vote","Additional Member System","Closed party list"],e:"In each constituency, the candidate with the most votes becomes the MP.",u:"https://www.electoralcommission.org.uk/resources/resources-young-people/who-responsible/uk-parliament/how-mps-are-elected",t:"Elections"},
+ {q:"If not dissolved earlier, a UK Parliament ends automatically after…",a:"5 years from when it first met",w:["4 years","7 years","It never ends automatically"],e:"This is set out in the Dissolution and Calling of Parliament Act 2022.",u:"https://www.legislation.gov.uk/ukpga/2022/11/section/4",t:"Elections"},
+ {q:"How are members of the Northern Ireland Assembly elected?",a:"Single Transferable Vote",w:["First past the post","Additional Member System","They are appointed"],e:"Voters rank candidates 1, 2, 3… There are 90 MLAs, 5 for each of 18 constituencies.",u:"https://www.gov.uk/elections-in-the-uk/northern-ireland-assembly",t:"Elections"},
+ {q:"What happens when an MP dies or retires between elections?",a:"A by-election is held",w:["The seat stays empty","Their party picks a new MP","The Speaker takes the seat"],e:"A by-election is held in that constituency to elect a new MP.",u:"https://www.parliament.uk/about/mps-and-lords/members/electing-mps/",t:"Elections"},
+ // Devolution
+ {q:"Which voting system elects the Scottish Parliament?",a:"Additional Member System",w:["First past the post only","Single Transferable Vote","Closed party list only"],e:"Voters get two votes: one for a constituency MSP and one for a region.",u:"https://www.electoralcommission.org.uk/voting-and-elections/how-elections-work/types-elections/scottish-parliament",t:"Devolution"},
+ {q:"How many MSPs are in the Scottish Parliament?",a:"129",w:["60","90","650"],e:"73 constituency MSPs and 56 regional MSPs.",u:"https://www.parliament.scot/msps/about-msps/",t:"Devolution"},
+ {q:"From what age can people vote in Scottish Parliament elections?",a:"16",w:["17","18","21"],e:"In Scotland, people aged 16 and over can vote in Scottish Parliament and council elections.",u:"https://www.electoralcommission.org.uk/voting-and-elections/who-can-vote/which-elections-you-can-vote",t:"Devolution"},
+ {q:"Which of these is devolved to the Scottish Parliament?",a:"Health",w:["Defence","Foreign affairs","Immigration"],e:"Health and education are devolved. Defence, foreign affairs and immigration are reserved to the UK Parliament.",u:"https://www.parliament.scot/about/how-parliament-works/devolved-and-reserved-powers",t:"Devolution"},
+ {q:"What is the Welsh Parliament also called?",a:"The Senedd",w:["Holyrood","Stormont","The Dáil"],e:"Senedd Cymru is the Welsh Parliament. Holyrood is Scotland's, Stormont is Northern Ireland's, and the Dáil is in Ireland.",u:"https://senedd.wales/how-we-work/our-role/",t:"Devolution"},
+ {q:"Which 1998 agreement underpins Northern Ireland's institutions?",a:"The Belfast (Good Friday) Agreement",w:["The Treaty of Rome","The Maastricht Treaty","The Act of Union"],e:"It was signed on 10 April 1998 and underpins Northern Ireland's peace and its institutions.",u:"https://www.gov.uk/government/publications/the-belfast-agreement",t:"Devolution"},
+ // Law and justice
+ {q:"What is the age of criminal responsibility in England and Wales?",a:"10",w:["12","14","16"],e:"Children under 10 cannot be arrested or charged with a crime. Scotland has different rules.",u:"https://www.gov.uk/age-of-criminal-responsibility",t:"Law and justice"},
+ {q:"How many people sit on a Crown Court jury?",a:"12",w:["6","10","15"],e:"Jurors are chosen at random from the electoral register to decide criminal trials.",u:"https://www.gov.uk/jury-service",t:"Law and justice"},
+ {q:"Which qualifications do you need to be a magistrate?",a:"No legal qualifications",w:["A law degree","Being a barrister","10 years as a solicitor"],e:"Magistrates are trained volunteers from the local community.",u:"https://www.gov.uk/become-magistrate/can-you-be-a-magistrate",t:"Law and justice"},
+ {q:"How are judges in England and Wales chosen?",a:"Appointed on merit",w:["Elected by voters","Chosen by MPs","Picked by the Prime Minister alone"],e:"The independent Judicial Appointments Commission runs the selection process.",u:"https://www.judiciary.uk/judicial-appointments-commission/",t:"Law and justice"},
+ {q:"Where do all criminal cases in England and Wales start?",a:"A magistrates' court",w:["The Crown Court","The Supreme Court","The High Court"],e:"Serious cases are then sent on to the Crown Court.",u:"https://www.gov.uk/courts",t:"Law and justice"},
+ {q:"A youth court deals with people aged…",a:"10 to 17",w:["5 to 15","12 to 21","16 to 25"],e:"A youth court is a special type of magistrates' court. There is no jury.",u:"https://www.gov.uk/courts/youth-court",t:"Law and justice"},
+ {q:"To find someone guilty, a jury must be…",a:"Sure they are guilty",w:["Just over 50% sure","Told by the judge","Given a confession"],e:"Also called 'beyond reasonable doubt'. If the jury is not sure, the verdict is not guilty.",u:"https://www.cps.gov.uk/about-cps/how-a-criminal-case-works",t:"Law and justice"},
+ {q:"What is the highest court of appeal in the UK?",a:"The Supreme Court",w:["The Crown Court","The House of Lords","The Old Bailey"],e:"It replaced the Lords' appeal committee in 2009 and has 12 Justices.",u:"https://www.supremecourt.uk/about-the-court",t:"Law and justice"},
+ // Rights
+ {q:"The UK is a founder member of which body, home of the European Convention on Human Rights?",a:"The Council of Europe",w:["The European Union","NATO","The Commonwealth"],e:"The UK joined on 5 May 1949. The Council of Europe is separate from the EU.",u:"https://www.coe.int/en/web/portal/united-kingdom",t:"Rights"},
+ {q:"Which law lets people use European Convention rights in UK courts?",a:"Human Rights Act 1998",w:["Equality Act 2010","Magna Carta","Freedom of Information Act 2000"],e:"It brought most Convention rights into UK law.",u:"https://commonslibrary.parliament.uk/research-briefings/cbp-9958/",t:"Rights"},
+ {q:"How many protected characteristics are in the Equality Act 2010?",a:"9",w:["5","7","12"],e:"Age, disability, gender reassignment, marriage and civil partnership, pregnancy and maternity, race, religion or belief, sex, sexual orientation.",u:"https://www.legislation.gov.uk/ukpga/2010/15/section/4",t:"Rights"},
+ {q:"The Freedom of Information Act lets you…",a:"Ask public bodies for recorded information",w:["Read anyone's private emails","Get free legal advice","See other people's tax records"],e:"You can ask public authorities, such as councils and government departments, for information they hold.",u:"https://www.gov.uk/make-a-freedom-of-information-request",t:"Rights"},
+ {q:"The UK has signed up to the UN Convention on the Rights of the Child. Which right is in it?",a:"The right to be heard",w:["The right to vote at 12","The right to drive at 15","The right to leave school at 14"],e:"It came into force in the UK in 1992. Article 12 says children can give their views on decisions that affect them.",u:"https://www.unicef.org.uk/what-we-do/un-convention-child-rights/",t:"Rights"},
+ // Monarchy
+ {q:"Who writes the King's Speech?",a:"The government",w:["The King","The Speaker","The Archbishop of Canterbury"],e:"It sets out the government's plans. The King reads it at the State Opening of Parliament.",u:"https://www.parliament.uk/site-information/glossary/kings-speech/",t:"Monarchy"},
+ {q:"The UK is a monarchy where the King reigns but elected people govern. This is called…",a:"A constitutional monarchy",w:["An absolute monarchy","A republic","A federation"],e:"The monarch is Head of State but stays politically neutral. Parliament makes the laws.",u:"https://www.royal.uk/the-role-of-the-monarchy",t:"Monarchy"},
+ // Local government
+ {q:"Who sends out Council Tax bills?",a:"Your local council",w:["HMRC","The police","The Bank of England"],e:"Your billing council collects it, including amounts for police and fire services.",u:"https://www.gov.uk/government/publications/paying-the-right-level-of-council-tax-a-plain-english-guide-to-council-tax/paying-the-right-level-of-council-tax-a-plain-english-guide-to-council-tax",t:"Local government"},
+ {q:"Which service is run by local councils?",a:"Rubbish and recycling collection",w:["The armed forces","Passports","Setting interest rates"],e:"Councils run local services such as waste collection, libraries and planning.",u:"https://www.gov.uk/understand-how-your-council-works",t:"Local government"},
+ // Media
+ {q:"Which body regulates most UK newspapers?",a:"IPSO",w:["Ofcom","The BBC","The Electoral Commission"],e:"Most newspapers belong to IPSO, the press regulator. Ofcom covers TV, radio and on-demand.",u:"https://www.ipso.co.uk/making-a-complaint/complaints-faqs/",t:"Media"},
+ {q:"Who regulates the BBC?",a:"Ofcom",w:["IPSO","The Prime Minister","The House of Lords"],e:"Ofcom has been the BBC's independent regulator since 2017.",u:"https://www.ofcom.org.uk/tv-radio-and-on-demand/bbc/how-ofcom-regulates-the-bbc",t:"Media"},
+ // Personal finance
+ {q:"Interest earned in a cash ISA is…",a:"Tax-free",w:["Taxed at 20%","Taxed at 40%","Paid to the government"],e:"Interest, income and gains inside an ISA are tax-free.",u:"https://www.gov.uk/individual-savings-accounts/how-isas-work",t:"Personal finance"},
+ {q:"National Insurance contributions build up your right to…",a:"The State Pension",w:["Council Tax discounts","A free TV licence","Student loan forgiveness"],e:"Years of contributions or credits count towards your State Pension.",u:"https://www.gov.uk/national-insurance/what-national-insurance-is-for",t:"Personal finance"},
+ {q:"Which rate tells you the interest you'll earn on savings?",a:"AER",w:["APR","VAT","CPI"],e:"AER is for savings. APR is the yearly cost of borrowing.",u:"https://www.moneyhelper.org.uk/en/savings/how-to-save/interest-rates-explained",t:"Personal finance"},
+ {q:"On a payslip, 'gross pay' means…",a:"Pay before deductions",w:["Pay after tax","Bonus pay only","Your pension pot"],e:"Gross pay is before tax and National Insurance. Net pay is what you take home.",u:"https://www.moneyhelper.org.uk/en/work/employment/understanding-your-payslip",t:"Personal finance"},
+ // UK and the world
+ {q:"The UK's seat on the UN Security Council is…",a:"Permanent, with a veto",w:["Elected for 2 years","Observer only","Held in alternate years"],e:"The five permanent members are China, France, Russia, the UK and the USA. Each has a veto.",u:"https://main.un.org/securitycouncil/en/content/voting-system",t:"UK and the world"},
+ {q:"The UK helped found the United Nations in…",a:"1945",w:["1919","1957","1973"],e:"The UN began on 24 October 1945, once the UK and other countries had ratified its Charter.",u:"https://www.un.org/en/about-us/history-of-the-un",t:"UK and the world"},
+ {q:"In 2015 the UK and the other UN member states agreed how many Sustainable Development Goals?",a:"17",w:["8","10","25"],e:"The UK government is responsible for working towards the Goals at home and supporting them abroad.",u:"https://www.gov.uk/government/topical-events/uk-voluntary-national-review-of-progress-towards-the-sustainable-development-goals",t:"UK and the world"},
+ {q:"When did the UK join NATO?",a:"1949, as a founding member",w:["1919, after the First World War","1973, with the EEC","1991, after the Cold War"],e:"The UK was one of 12 countries that signed the North Atlantic Treaty on 4 April 1949.",u:"https://www.nato.int/cps/en/natohq/topics_52044.htm",t:"UK and the world"},
+ {q:"As well as being the UK's monarch, the King is…",a:"Head of the Commonwealth",w:["Commonwealth Secretary-General","Head of state of every Commonwealth country","Not part of the Commonwealth"],e:"The Commonwealth has 56 members. Most are republics, and the King is head of state in only some.",u:"https://thecommonwealth.org/about-us",t:"UK and the world"}
+];
+
+var SKEY="citizenshipGames.passTheBomb.v1";
+var FUSES={short:[15,35],normal:[25,60],long:[40,80]};
+var LOCK_MS=2000;
+
+function $(id){return document.getElementById("ptb-"+id);}
+function store(k,v){try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); return true;}catch(e){return false;}}
+function load(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function say(t){var l=$("live");l.textContent="";setTimeout(function(){l.textContent=t;},30);}
+function hearts(n,max){var s="";for(var i=0;i<max;i++)s+=(i<n?"♥":"♡");return s;}
+
+
+/* ===== Settings (names are never stored) ===== */
+var S={players:4,lives:2,cap:8,fuse:"normal",timer:false};
+/* sound, calm, big, hc, reduce are shared hub settings (CG.settings); they are not enumerable so are not saved here */
+["sound","calm","big","hc","reduce"].forEach(function(k){Object.defineProperty(S,k,{enumerable:false,get:function(){return CG.settings[k];},set:function(v){CG.settings[k]=v;}});});
+(function(){var r=load(SKEY);if(r){try{var o=JSON.parse(r);for(var k in S)if(o.hasOwnProperty(k)&&typeof o[k]===typeof S[k])S[k]=o[k];}catch(e){}}
+  S.players=Math.min(10,Math.max(2,S.players|0));
+})();
+function saveSettings(){store(SKEY,JSON.stringify(S));CG.saveSettings();}
+function applyBody(){
+  CG.applyBody();
+  $("qTimer").hidden=!S.timer;$("pTimer").hidden=!S.timer;
+}
+
+/* ===== Audio (Web Audio only, no files) ===== */
+var AC=null,master=null;
+function audio(){
+  if(!S.sound)return null;
+  try{
+    if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);}
+    if(AC.state==="suspended")AC.resume();
+  }catch(e){AC=null;return null;}
+  return AC;
+}
+function tone(f,dur,type,vol,when,endF){
+  var ac=audio();if(!ac)return;
+  try{var t=ac.currentTime+(when||0),o=ac.createOscillator(),g=ac.createGain();
+  o.type=type||"sine";o.frequency.setValueAtTime(f,t);if(endF)o.frequency.exponentialRampToValueAtTime(endF,t+dur);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||.2,t+.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.02);}catch(e){}
+}
+var tickAlt=false;
+function sTick(){ if(S.calm)return; tickAlt=!tickAlt; tone(tickAlt?1250:900,.045,"square",.12); }
+function sGood(){ tone(660,.12,"sine",.22);tone(990,.18,"sine",.22,.1); }
+function sBad(){ tone(180,.3,"sawtooth",.18,0,110); }
+function sPass(){ tone(520,.08,"triangle",.15); }
+function sBoom(){
+  var ac=audio();if(!ac)return;
+  if(S.calm){tone(330,.6,"sine",.18);tone(247,.9,"sine",.15,.25);return;}
+  try{var t=ac.currentTime,len=Math.floor(ac.sampleRate*1.6),buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
+    for(var i=0;i<len;i++){d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2);}
+    var src=ac.createBufferSource();src.buffer=buf;var lp=ac.createBiquadFilter();lp.type="lowpass";lp.frequency.setValueAtTime(2200,t);lp.frequency.exponentialRampToValueAtTime(120,t+1.4);
+    var g=ac.createGain();g.gain.setValueAtTime(1,t);g.gain.exponentialRampToValueAtTime(0.001,t+1.6);
+    src.connect(lp);lp.connect(g);g.connect(master);src.start(t);src.stop(t+1.65);
+    tone(90,1.1,"sine",.6,0,30);}catch(e){}
+}
+function buzz(p){ if(S.calm)return; try{ if(navigator.vibrate)navigator.vibrate(p);}catch(e){} }
+
+/* ===== Wake lock ===== */
+var wl=null;
+function wakeOn(){ try{ if(navigator.wakeLock&&!wl&&document.visibilityState==="visible"){ navigator.wakeLock.request("screen").then(function(l){wl=l;l.addEventListener("release",function(){wl=null;});}).catch(function(){}); } }catch(e){} }
+function wakeOff(){ try{ if(wl){wl.release();wl=null;} }catch(e){} }
+
+/* ===== Game state ===== */
+var G=null, active=false; // {players:[{name,lives}],holder,round,bombs,fuseEnd,fuseMs,state,q,deck,wrong:[],paused,remain}
+var loopId=null,nextTick=0;
+
+function show(id){
+  ["scrSetup","scrReady","scrQ","scrPass","scrBoom","scrEnd"].forEach(function(s){$(s).classList.toggle("on",s===id);});
+  if(!id)return;
+  window.scrollTo(0,0);
+}
+function names(){
+  var out=[];for(var i=0;i<S.players;i++){var el=$("nm"+i);var v=el?el.value.trim().slice(0,16):"";out.push(v||("Player "+(i+1)));}
+  return out;
+}
+function alive(){return G.players.map(function(p,i){return p.lives>0?i:-1;}).filter(function(i){return i>=0;});}
+function nextAlive(from){var n=G.players.length;for(var k=1;k<=n;k++){var j=(from+k)%n;if(G.players[j].lives>0)return j;}return from;}
+
+function startGame(){
+  var bank=DEFAULT_QUESTIONS;
+  audio(); // unlock audio on this tap
+  var nm=names();
+  G={players:nm.map(function(n){return {name:n,lives:S.lives};}),holder:Math.floor(Math.random()*nm.length),
+     round:0,bombs:0,state:"ready",q:null,deck:[],bank:bank,wrong:[],wrongSet:{},paused:false,fuseEnd:0,fuseMs:0,remain:0,pending:null,passFrom:null};
+  wakeOn();
+  readyRound();
+}
+function drawQ(){
+  if(!G.deck.length){G.deck=shuffle(G.bank.map(function(_,i){return i;}));
+    if(G.q&&G.deck.length>1&&G.bank[G.deck[G.deck.length-1]]===G.q.src){G.deck.unshift(G.deck.pop());}}
+  var src=G.bank[G.deck.pop()];
+  var opts=shuffle([src.a].concat(src.w.slice(0,3)));
+  return {src:src,opts:opts,correct:opts.indexOf(src.a)};
+}
+function readyRound(){
+  G.round++;G.state="ready";
+  $("readyRound").textContent="Round "+G.round+(S.cap?" of up to "+S.cap:"");
+  $("readyName").textContent=G.players[G.holder].name;
+  renderStand($("readyStand"),-1);
+  show("scrReady");say("Round "+G.round+". The bomb starts with "+G.players[G.holder].name);
+}
+function lightFuse(){
+  audio();
+  var r=FUSES[S.fuse]||FUSES.normal;
+  G.fuseMs=Math.round((r[0]+Math.random()*(r[1]-r[0]))*1000);
+  G.fuseEnd=performance.now()+G.fuseMs;G.paused=false;nextTick=0;
+  newQuestion();
+  if(loopId)clearInterval(loopId);
+  loopId=setInterval(loop,40);
+}
+function remaining(){return G.paused?G.remain:Math.max(0,G.fuseEnd-performance.now());}
+function loop(){
+  if(!G||G.paused)return;
+  if(["q","flash","lock","pass"].indexOf(G.state)<0)return;
+  var now=performance.now(),rem=G.fuseEnd-now;
+  if(rem<=0){explode();return;}
+  if(S.timer){var s=Math.ceil(rem/1000)+"s";$("qTimer").textContent=s;$("pTimer").textContent=s;}
+  if(S.sound&&!S.calm&&now>=nextTick){
+    var p=1-rem/G.fuseMs; var iv=Math.max(110,900-790*Math.pow(p,1.4));
+    sTick(); nextTick=now+iv;
+    if(!S.reduce){var b=$("qBomb");b.style.animationDuration=Math.max(.2,iv/600)+"s";}
+  }
+}
+function newQuestion(){
+  G.q=drawQ();G.state="q";
+  var h=G.players[G.holder];
+  $("qName").textContent=h.name+" has the bomb";
+  $("qHearts").textContent=hearts(h.lives,S.lives);
+  $("qHearts").setAttribute("aria-label",h.lives+" lives");
+  $("qTopic").textContent=G.q.src.t||"";
+  $("qText").textContent=G.q.src.q;
+  var box=$("answers");box.innerHTML="";
+  G.q.opts.forEach(function(o,i){
+    var b=document.createElement("button");b.type="button";b.className="ans";b.dataset.i=i;
+    var k=document.createElement("span");k.className="k";k.textContent="ABCD"[i];k.setAttribute("aria-hidden","true");
+    var t=document.createElement("span");t.textContent=o;
+    b.appendChild(k);b.appendChild(t);b.addEventListener("click",function(){answer(i);});
+    box.appendChild(b);
+  });
+  $("lockMsg").classList.remove("on");$("lockMsg").textContent="";
+  if(S.timer)$("qTimer").textContent=Math.ceil(remaining()/1000)+"s";
+  show("scrQ");
+}
+function answer(i){
+  if(!G||G.state!=="q"||G.paused)return;
+  var btns=$("answers").querySelectorAll(".ans");
+  btns.forEach(function(b){b.disabled=true;});
+  var scr=$("scrQ");
+  if(i===G.q.correct){
+    G.state="flash";btns[i].classList.add("right");sGood();
+    flash(scr,"flash-good");
+    G.pending=setTimeout(function(){ if(G&&G.state==="flash")toPass(); },500);
+  }else{
+    G.state="lock";btns[i].classList.add("wrong");btns[G.q.correct].classList.add("right");
+    sBad();buzz(120);flash(scr,"flash-bad");if(!S.calm&&!S.reduce)flash($("answers"),"shake");
+    var s=G.q.src;if(!G.wrongSet[s.q]){G.wrongSet[s.q]=1;G.wrong.push(s);}
+    var lm=$("lockMsg"),end=performance.now()+LOCK_MS;lm.classList.add("on");
+    var upd=function(){ if(!G||G.state!=="lock")return; if(G.paused){G.pending=setTimeout(upd,100);end+=100;return;}
+      var left=end-performance.now(); if(left<=0){newQuestion();return;}
+      lm.textContent="Wrong! New question in "+Math.ceil(left/1000)+"…"; G.pending=setTimeout(upd,100); };
+    upd(); say("Wrong. The answer was "+s.a+". New question in 2 seconds.");
+  }
+}
+function flash(el,c){el.classList.remove(c);void el.offsetWidth;el.classList.add(c);setTimeout(function(){el.classList.remove(c);},950);}
+function toPass(){
+  G.passFrom=G.holder; G.holder=nextAlive(G.holder); G.state="pass";
+  var n=G.players[G.holder].name;
+  $("passName").textContent=n;$("takeName").textContent=n;
+  if(S.timer)$("pTimer").textContent=Math.ceil(remaining()/1000)+"s";
+  sPass(); show("scrPass"); say("Correct. Pass it on to "+n);
+}
+function take(){ if(!G||G.state!=="pass"||G.paused)return; newQuestion(); }
+
+function explode(){
+  if(!G)return;
+  var wasState=G.state; clearTimeout(G.pending); clearInterval(loopId); loopId=null;
+  G.state="boom"; G.bombs++;
+  var p=G.players[G.holder]; p.lives=Math.max(0,p.lives-1);
+  sBoom(); buzz([400,120,400]);
+  $("boomWho").textContent=p.name+" was holding it!";
+  $("boomLives").textContent=p.lives>0?("Loses a life: "+p.lives+" left"):"Out of lives: "+p.name+" is out!";
+  var L=$("boomLearn");L.innerHTML="";
+  if((wasState==="q"||wasState==="lock"||wasState==="flash")&&G.q){
+    var s=G.q.src;
+    var h=document.createElement("div");h.className="hint";h.textContent="The question on screen was:";L.appendChild(h);
+    var q=document.createElement("div");q.className="lq";q.textContent=s.q;L.appendChild(q);
+    var a=document.createElement("div");a.className="la";a.textContent="✓ "+s.a;L.appendChild(a);
+    if(s.e){var e=document.createElement("div");e.textContent=s.e;L.appendChild(e);}
+    if(s.u){var d=document.createElement("div");d.className="src";d.appendChild(document.createTextNode("Source: "));var ln=document.createElement("a");ln.href=s.u;ln.target="_blank";ln.rel="noopener noreferrer";ln.textContent=s.u.replace(/^https?:\/\/(www\.)?/,"").split("/")[0];d.appendChild(ln);L.appendChild(d);}
+    L.hidden=false;
+  }else{
+    var m=document.createElement("div");m.textContent="It blew up while the phone was being passed!";L.appendChild(m);
+  }
+  renderStand($("boomStand"),G.holder);
+  var over=alive().length<=1||(S.cap&&G.bombs>=S.cap);
+  var nb=$("btnNext");nb.textContent=over?"See results":"Next round";nb.disabled=true;
+  setTimeout(function(){nb.disabled=false;},1200);
+  var scr=$("scrBoom");show("scrBoom");
+  if(!S.calm&&!S.reduce){flash(scr,"boomflash");flash(scr,"shake");}
+  say("Boom! "+p.name+" was holding the bomb. "+$("boomLives").textContent);
+}
+function afterBoom(){
+  if(!G||G.state!=="boom")return;
+  var al=alive();
+  if(al.length<=1||(S.cap&&G.bombs>=S.cap)){endGame();return;}
+  G.holder=nextAlive(G.holder); // the next player starts the next round
+  readyRound();
+}
+function renderStand(el,hot){
+  el.innerHTML="";
+  G.players.forEach(function(p,i){var c=document.createElement("span");c.className="chip"+(p.lives<=0?" out":"")+(i===hot?" hot":"");
+    c.textContent=p.name+" "+(p.lives>0?hearts(p.lives,S.lives):"out");el.appendChild(c);});
+}
+function endGame(){
+  if(!G)return; clearTimeout(G.pending); clearInterval(loopId); loopId=null; G.state="end"; wakeOff(); hidePause();
+  var best=Math.max.apply(null,G.players.map(function(p){return p.lives;}));
+  var winners=G.players.filter(function(p){return p.lives===best&&best>0;});
+  var al=alive();
+  if(!winners.length){$("t5").textContent="No winner this time!";$("endSub").textContent="Everyone ran out of lives.";}
+  else if(winners.length===1){$("t5").textContent=winners[0].name+" wins!";
+    $("endSub").textContent=al.length===1?"Last one standing.":("Most lives left after "+G.bombs+" bomb"+(G.bombs===1?"":"s")+".");}
+  else{$("t5").textContent="Shared win: "+winners.map(function(w){return w.name;}).join(", ");$("endSub").textContent="Tied on lives after "+G.bombs+" bomb"+(G.bombs===1?"":"s")+".";}
+  var t=$("endTable");t.innerHTML="";
+  G.players.slice().map(function(p,i){return {p:p,i:i};}).sort(function(a,b){return b.p.lives-a.p.lives||a.i-b.i;}).forEach(function(r){
+    var tr=document.createElement("tr");var a=document.createElement("td");a.textContent=r.p.name;var b=document.createElement("td");
+    b.textContent=r.p.lives>0?hearts(r.p.lives,S.lives):"out";b.className=r.p.lives>0?"hearts":"muted";tr.appendChild(a);tr.appendChild(b);t.appendChild(tr);});
+  var rv=$("endReview");rv.innerHTML="";
+  if(!G.wrong.length){var p=document.createElement("p");p.className="muted";p.textContent="None. Every answer was right!";rv.appendChild(p);}
+  else{var ol=document.createElement("ol");ol.className="review";
+    G.wrong.forEach(function(s){var li=document.createElement("li");var q=document.createElement("div");q.style.fontWeight="700";q.textContent=s.q;li.appendChild(q);
+      var a=document.createElement("div");a.className="ra";a.textContent="✓ "+s.a;li.appendChild(a);
+      if(s.e){var e=document.createElement("div");e.className="muted";e.textContent=s.e;li.appendChild(e);}
+      if(s.u){var d=document.createElement("div");d.className="hint";var ln=document.createElement("a");ln.href=s.u;ln.target="_blank";ln.rel="noopener noreferrer";ln.style.color="var(--focus)";ln.textContent="Source: "+s.u.replace(/^https?:\/\/(www\.)?/,"").split("/")[0];d.appendChild(ln);li.appendChild(d);}
+      ol.appendChild(li);});rv.appendChild(ol);}
+  show("scrEnd");say($("t5").textContent);
+}
+function quitToSetup(){ if(G){clearTimeout(G.pending);} clearInterval(loopId);loopId=null;G=null;wakeOff();hidePause();renderSetup();show("scrSetup"); }
+
+/* ===== Pause ===== */
+function canPause(){return G&&["q","flash","lock","pass"].indexOf(G.state)>=0;}
+function pause(){ if(!canPause()||G.paused)return; G.remain=Math.max(0,G.fuseEnd-performance.now()); G.paused=true;
+  $("pSound").checked=S.sound;$("pCalm").checked=S.calm;$("pTimerOpt").checked=S.timer;$("pause").classList.add("on");$("btnResume").focus(); }
+function resume(){ if(!G||!G.paused)return; audio(); G.fuseEnd=performance.now()+G.remain; G.paused=false; nextTick=0; hidePause(); wakeOn(); }
+function hidePause(){$("pause").classList.remove("on");}
+
+/* ===== Setup UI ===== */
+function renderSetup(){
+  $("nPlayers").textContent=S.players;
+  var box=$("names"),old=[];box.querySelectorAll("input").forEach(function(i){old.push(i.value);});
+  box.innerHTML="";
+  for(var i=0;i<S.players;i++){var inp=document.createElement("input");inp.id="ptb-nm"+i;inp.type="text";inp.maxLength=16;inp.placeholder="Player "+(i+1);
+    inp.setAttribute("aria-label","Nickname for player "+(i+1)+" (optional)");inp.autocomplete="off";inp.setAttribute("autocapitalize","words");inp.value=old[i]||"";box.appendChild(inp);}
+  $("pMinus").disabled=S.players<=2;$("pPlus").disabled=S.players>=10;
+  ["segLives","segCap","segFuse"].forEach(function(id){var seg=$(id),k=seg.dataset.key;seg.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",String(String(S[k])===b.dataset.v));});});
+  $("optSound").checked=S.sound;$("optCalm").checked=S.calm;$("optTimer").checked=S.timer;$("optBig").checked=S.big;$("optHC").checked=S.hc;$("optReduce").checked=S.reduce;
+  var r=FUSES[S.fuse],avg=(r[0]+r[1])/2+12,maxB=S.cap||(S.players*S.lives-1);
+  $("estimate").textContent="About "+Math.max(1,Math.round(maxB*avg/60))+" minutes at most ("+maxB+" bombs).";
+  $("bankInfo").textContent=DEFAULT_QUESTIONS.length+" built-in UK Citizenship questions.";
+  applyBody();
+}
+$("pMinus").addEventListener("click",function(){S.players=Math.max(2,S.players-1);saveSettings();renderSetup();});
+$("pPlus").addEventListener("click",function(){S.players=Math.min(10,S.players+1);saveSettings();renderSetup();});
+["segLives","segCap","segFuse"].forEach(function(id){$(id).addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var k=this.dataset.key;
+  S[k]=(k==="fuse")?b.dataset.v:parseInt(b.dataset.v,10);saveSettings();renderSetup();});});
+function bindOpt(id,key,cb){$(id).addEventListener("change",function(){S[key]=this.checked;saveSettings();applyBody();if(cb)cb();});}
+bindOpt("optSound","sound",function(){if(S.sound){audio();tone(880,.08,"sine",.15);}});
+bindOpt("optCalm","calm");bindOpt("optTimer","timer");bindOpt("optBig","big");bindOpt("optHC","hc");bindOpt("optReduce","reduce");
+bindOpt("pSound","sound");bindOpt("pCalm","calm");bindOpt("pTimerOpt","timer",function(){if(S.timer&&G){var s=Math.ceil(remaining()/1000)+"s";$("qTimer").textContent=s;$("pTimer").textContent=s;}});
+$("btnStart").addEventListener("click",startGame);
+$("btnHow").addEventListener("click",function(){var c=$("howCard");c.hidden=!c.hidden;if(!c.hidden)c.scrollIntoView({block:"start"});});
+$("btnLight").addEventListener("click",lightFuse);
+$("btnReadyQuit").addEventListener("click",function(){if(G&&G.bombs>0)endGame();else quitToSetup();});
+$("btnTake").addEventListener("click",take);
+$("scrPass").addEventListener("click",function(e){ if(e.target.closest("button"))return; take(); }); // tap anywhere
+$("btnNext").addEventListener("click",afterBoom);
+$("btnAgain").addEventListener("click",function(){G=null;startGame();});
+$("btnSetup").addEventListener("click",quitToSetup);
+$("btnPause").addEventListener("click",pause);
+$("btnResume").addEventListener("click",resume);
+$("btnQuit").addEventListener("click",function(){ if(G&&G.bombs>0) endGame(); else quitToSetup(); });
+
+
+/* ===== Global behaviour ===== */
+document.addEventListener("visibilitychange",function(){
+  if(!active)return;
+  if(document.visibilityState==="hidden"){pause();}
+  else if(G&&G.state!=="end"){wakeOn();}
+});
+document.addEventListener("keydown",function(e){
+  if(!active||!G||e.ctrlKey||e.metaKey||e.altKey)return;
+  var tag=(e.target&&e.target.tagName)||""; if(tag==="INPUT")return;
+  if(G.paused){ if(e.key==="Escape"){resume();e.preventDefault();} return; }
+  if(G.state==="q"&&/^[1-4a-dA-D]$/.test(e.key)){var i=/[1-4]/.test(e.key)?parseInt(e.key,10)-1:"abcd".indexOf(e.key.toLowerCase());if(i<G.q.opts.length){answer(i);e.preventDefault();}}
+  else if(G.state==="pass"&&(e.key==="Enter"||e.key===" ")){take();e.preventDefault();}
+  else if(e.key==="Escape"&&canPause()){pause();e.preventDefault();}
+});
+/* ===== Hub lifecycle ===== */
+function stopAudio(){ try{ if(AC&&AC.state==="running")AC.suspend(); }catch(e){} }
+function isBusy(){ return !!G&&G.state!=="end"; }
+function leaveToHub(){ if(isBusy()){ pause(); if(!confirm(CG.LEAVE_MSG))return; } CG.goHome(); }
+$("btnHome").addEventListener("click",leaveToHub);
+$("btnPauseHome").addEventListener("click",leaveToHub);
+$("btnEndHome").addEventListener("click",leaveToHub);
+return {
+  id:"pass-the-bomb",
+  title:"Pass the Bomb",
+  description:"Answer right to pass the phone on before the hidden fuse runs out.",
+  players:"2–10 players · one phone",
+  time:"~10 min",
+  icon:'<svg class="bomb" viewBox="0 0 100 100" aria-hidden="true"><use href="#bombSym"/></svg>',
+  enter:function(){ active=true; G=null; renderSetup(); show("scrSetup"); },
+  leave:function(){ if(G)clearTimeout(G.pending); clearInterval(loopId); loopId=null; G=null; wakeOff(); hidePause(); stopAudio(); active=false; show(null); },
+  isBusy:isBusy,
+  pause:pause
+};
+})());
+
+CG.boot();
+</script>
+</body>
+</html>
