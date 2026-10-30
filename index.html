@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#14141f">
-<meta name="description" content="Citizenship Games: quick one-phone quiz games for UK Citizenship.">
-<title>Citizenship Games</title>
+<meta name="description" content="Citizenship PGCE: quick one-phone quiz games for UK Citizenship.">
+<title>Citizenship PGCE</title>
 <style>
 
 :root{
@@ -176,7 +176,10 @@ button.tile:active,button.tile:hover{border-color:var(--accent)}
  .tile .ticon{width:46px;height:46px}.tile .ticon svg{width:40px;height:40px}
  .tile .tmeta{margin-top:5px}.tile .go{font-size:1.4em}
 }
-.hub-gear{display:flex;align-items:center;justify-content:center;margin-top:6px;color:var(--ink)}
+.hub-gear{display:flex;align-items:center;justify-content:center;color:var(--ink);position:fixed;z-index:50;top:max(14px,env(safe-area-inset-top));right:max(16px,calc((100vw - 560px)/2))}
+.hubtop{padding-right:62px}
+#ptb-scrEnd .scroll{padding-top:56px}
+body:has(.screen.fixed.on) .hub-gear,body:has(.overlay.on) .hub-gear{display:none}
 #hub-settings{background:var(--bg);color:var(--ink);border:2px solid var(--line);border-radius:var(--radius);padding:16px;width:min(92vw,460px);max-height:90vh;overflow:auto}
 #hub-settings::backdrop{background:rgba(0,0,0,.6)}
 #hub-settings h2{margin-top:0}
@@ -190,16 +193,15 @@ button.tile:active,button.tile:hover{border-color:var(--accent)}
  <div class="scroll">
   <div class="hubtop">
    <h1 id="hub-title" tabindex="-1"><span id="hub-name"></span><small id="hub-sub"></small></h1>
-   <svg class="bomb pulse" viewBox="0 0 100 100" aria-hidden="true" style="width:64px;height:64px;flex:none;margin-top:6px"><use href="#bombSym"/></svg>
-   <button type="button" class="iconbtn hub-gear" id="hub-settings-btn" aria-label="Settings" aria-haspopup="dialog" title="Settings"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
-  <p class="muted" id="hub-intro">Quick Citizenship games for a group. Pick one to play.</p>
+  <p class="muted" id="hub-intro">Resources to improve Citizenship Subject Knowledge. Pick one to start.</p>
   <h2 style="margin-top:.8em">Games</h2>
   <div class="tiles" id="hub-tiles"></div>
  </div>
 </section>
 
-<!-- ===== HUB SETTINGS MENU ===== -->
+<!-- ===== HUB SETTINGS MENU (shared gear on every screen) ===== -->
+<button type="button" class="iconbtn hub-gear" id="hub-settings-btn" aria-label="Settings" aria-haspopup="dialog" title="Settings"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 <dialog id="hub-settings" aria-labelledby="hub-settings-title">
  <h2 id="hub-settings-title">Settings</h2>
  <p class="muted" style="margin:0">These apply to all games.</p>
@@ -223,7 +225,7 @@ button.tile:active,button.tile:hover{border-color:var(--accent)}
  <div class="scroll">
   <button type="button" class="btn small homebtn" id="ptb-btnHome">‹ All games</button>
   <div class="row" style="align-items:flex-start">
-   <h1 id="ptb-t1">Pass the Bomb<small>UK CITIZENSHIP EDITION</small></h1>
+   <h1 id="ptb-t1">Pass the Bomb<small>UK EDITION</small></h1>
    <svg class="bomb pulse" viewBox="0 0 100 100" aria-hidden="true" style="width:74px;height:74px;flex:none;margin-top:6px"><use href="#bombSym"/></svg>
   </div>
   <p class="muted">One phone, passed round the table. Answer right to pass the bomb on. Hold it when it blows and you lose a life.</p>
@@ -244,16 +246,9 @@ button.tile:active,button.tile:hover{border-color:var(--accent)}
    <label class="lbl" style="margin-top:14px">Fuse length (random, secret)</label>
    <div class="seg" id="ptb-segFuse" data-key="fuse"><button type="button" data-v="short">Short<br><small>15–35s</small></button><button type="button" data-v="normal">Normal<br><small>25–60s</small></button><button type="button" data-v="long">Long<br><small>40–80s</small></button></div>
    <p class="hint" id="ptb-estimate"></p>
+   <label class="toggle" style="margin-top:10px"><span>Show the timer<small>Shows the seconds left on the fuse</small></span><input type="checkbox" id="ptb-optTimer"></label>
   </div>
 
-  <div class="card" aria-label="Options">
-   <label class="toggle"><span>Sound<small>Ticking that speeds up, and a bang</small></span><input type="checkbox" id="ptb-optSound" checked></label>
-   <label class="toggle"><span>Calm mode<small>No ticking, no vibration, no shaking</small></span><input type="checkbox" id="ptb-optCalm"></label>
-   <label class="toggle"><span>Show the timer<small>Shows the seconds left on the fuse</small></span><input type="checkbox" id="ptb-optTimer"></label>
-   <label class="toggle"><span>Large text</span><input type="checkbox" id="ptb-optBig"></label>
-   <label class="toggle"><span>Extra contrast</span><input type="checkbox" id="ptb-optHC"></label>
-   <label class="toggle"><span>Reduce motion<small>On automatically if your phone asks for it</small></span><input type="checkbox" id="ptb-optReduce"></label>
-  </div>
 
   <button type="button" class="btn primary" id="ptb-btnStart">Start</button>
   <div class="links">
@@ -323,7 +318,7 @@ button.tile:active,button.tile:hover{border-color:var(--accent)}
 <!-- END -->
 <section id="ptb-scrEnd" class="screen" aria-labelledby="ptb-t5">
  <div class="scroll">
-  <p class="muted" style="margin-top:10px">Game over · UK CITIZENSHIP EDITION</p>
+  <p class="muted" style="margin-top:10px">Game over · UK EDITION</p>
   <div class="winner" id="ptb-t5"></div>
   <p id="ptb-endSub" class="muted"></p>
   <div class="card"><table class="stand" id="ptb-endTable"></table></div>
@@ -373,8 +368,8 @@ button.tile:active,button.tile:hover{border-color:var(--accent)}
 window.CG=(function(){
 "use strict";
 /* Change the hub name here */
-var HUB_TITLE="Citizenship Games";
-var HUB_SUBTITLE="UK CITIZENSHIP EDITION";
+var HUB_TITLE="Citizenship PGCE";
+var HUB_SUBTITLE="UK EDITION";
 var KEY="citizenshipGames.settings.v1";
 var LEAVE_MSG="Leave this game and go back to all games? The current game will end.";
 var settings={sound:true,calm:false,big:false,hc:false,reduce:false};
@@ -439,7 +434,7 @@ function goHome(){
 function boot(){
   ["sound","calm","big","hc","reduce"].forEach(function(k){$("hub-"+k).addEventListener("change",function(){settings[k]=this.checked;saveSettings();applyBody();});});
   var dlg=$("hub-settings");
-  $("hub-settings-btn").addEventListener("click",function(){if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");});
+  $("hub-settings-btn").addEventListener("click",function(){["sound","calm","big","hc","reduce"].forEach(function(k){$("hub-"+k).checked=settings[k];});if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");});
   $("hub-settings-done").addEventListener("click",function(){if(dlg.close)dlg.close();else dlg.removeAttribute("open");$("hub-settings-btn").focus();});
   document.addEventListener("dblclick",function(e){e.preventDefault();},{passive:false});
   window.addEventListener("hashchange",route);
@@ -780,7 +775,7 @@ function renderSetup(){
     inp.setAttribute("aria-label","Nickname for player "+(i+1)+" (optional)");inp.autocomplete="off";inp.setAttribute("autocapitalize","words");inp.value=old[i]||"";box.appendChild(inp);}
   $("pMinus").disabled=S.players<=2;$("pPlus").disabled=S.players>=10;
   ["segLives","segCap","segFuse"].forEach(function(id){var seg=$(id),k=seg.dataset.key;seg.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",String(String(S[k])===b.dataset.v));});});
-  $("optSound").checked=S.sound;$("optCalm").checked=S.calm;$("optTimer").checked=S.timer;$("optBig").checked=S.big;$("optHC").checked=S.hc;$("optReduce").checked=S.reduce;
+  $("optTimer").checked=S.timer;
   var r=FUSES[S.fuse],avg=(r[0]+r[1])/2+12,maxB=S.cap||(S.players*S.lives-1);
   $("estimate").textContent="About "+Math.max(1,Math.round(maxB*avg/60))+" minutes at most ("+maxB+" bombs).";
   $("bankInfo").textContent=DEFAULT_QUESTIONS.length+" built-in UK Citizenship questions.";
@@ -791,8 +786,7 @@ $("pPlus").addEventListener("click",function(){S.players=Math.min(10,S.players+1
 ["segLives","segCap","segFuse"].forEach(function(id){$(id).addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var k=this.dataset.key;
   S[k]=(k==="fuse")?b.dataset.v:parseInt(b.dataset.v,10);saveSettings();renderSetup();});});
 function bindOpt(id,key,cb){$(id).addEventListener("change",function(){S[key]=this.checked;saveSettings();applyBody();if(cb)cb();});}
-bindOpt("optSound","sound",function(){if(S.sound){audio();tone(880,.08,"sine",.15);}});
-bindOpt("optCalm","calm");bindOpt("optTimer","timer");bindOpt("optBig","big");bindOpt("optHC","hc");bindOpt("optReduce","reduce");
+bindOpt("optTimer","timer");
 bindOpt("pSound","sound");bindOpt("pCalm","calm");bindOpt("pTimerOpt","timer",function(){if(S.timer&&G){var s=Math.ceil(remaining()/1000)+"s";$("qTimer").textContent=s;$("pTimer").textContent=s;}});
 $("btnStart").addEventListener("click",startGame);
 $("btnHow").addEventListener("click",function(){var c=$("howCard");c.hidden=!c.hidden;if(!c.hidden)c.scrollIntoView({block:"start"});});
