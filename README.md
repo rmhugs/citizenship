@@ -1,4 +1,4 @@
-# Citizenship Games
+# Citizenship
 
 A single web page of quiz games for Citizenship PGCE trainees and aspiring teachers. Use it to revise your own UK Citizenship subject knowledge.
 
@@ -37,7 +37,7 @@ The Pass the Bomb questions were checked against official UK sources in October 
 
 Home screen, with Pass the Bomb, Citizenship Quiz Coach marked soon, and the shared settings.
 
-![Home screen of Citizenship Games, showing Pass the Bomb and Citizenship Quiz Coach coming soon](screenshots/screenshot-1-home-390x844.png)
+![Home screen of Citizenship, showing Pass the Bomb and Citizenship Quiz Coach coming soon](screenshots/screenshot-1-home-390x844.png)
 
 A Pass the Bomb question.
 
